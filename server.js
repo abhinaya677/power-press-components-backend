@@ -47,26 +47,30 @@ app.post("/api/contact", async (req, res) => {
   }
   // --- REGISTER endpoint ---
 app.post("/api/register", async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+  const { name, email, password } = req.body; // frontend sends these fields
+  if (!name || !email || !password)
+    return res.status(400).json({ error: "Missing fields" });
 
   try {
-    // Check if username already exists in 'login' table
-    const [results] = await db.query("SELECT * FROM login WHERE username = ?", [username]);
-    if (results.length > 0) return res.status(409).json({ error: "Username already exists" });
+    // Use email as the username in login table
+    const [results] = await db.query("SELECT * FROM login WHERE username = ?", [email]);
+    if (results.length > 0)
+      return res.status(409).json({ error: "Email already registered" });
 
-    // Insert into 'login' table
-    await db.query("INSERT INTO login (username, password) VALUES (?, ?)", [username, password]);
+    // Insert into login table
+    await db.query("INSERT INTO login (username, password) VALUES (?, ?)", [email, password]);
+
     res.json({ success: true });
-
   } catch (err) {
     console.error("DB error:", err);
     return res.status(500).json({ error: "Database error" });
   }
 });
 
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
