@@ -1,12 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const db = require("./db");
+const db = require("./db"); // make sure this exports a working MySQL connection
 
 const app = express();
-app.use(cors({
-  origin: "*" // allow all origins; replace "*" with your frontend URL for production
-}));
+app.use(cors({ origin: "*" })); // for production, replace "*" with your frontend URL
 app.use(express.json());
 
 // --- LOGIN endpoint ---
@@ -15,11 +13,15 @@ app.post("/api/login", async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
   try {
-    const [results] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
+    // TABLE NAME CHANGE: use 'login' instead of 'users'
+    const [results] = await db.query("SELECT * FROM login WHERE username = ?", [username]);
+
     if (results.length === 0) return res.status(401).json({ error: "User not found" });
 
+    // WARNING: password is plain text — for real apps, use bcrypt
     if (results[0].password === password) return res.json({ success: true });
     return res.status(401).json({ error: "Wrong password" });
+
   } catch (err) {
     console.error("DB error:", err);
     return res.status(500).json({ error: "Database error" });
@@ -32,11 +34,13 @@ app.post("/api/contact", async (req, res) => {
   if (!name || !email || !message) return res.status(400).json({ error: "All fields required" });
 
   try {
+    // TABLE NAME CHANGE: use 'contact' instead of 'contacts'
     await db.query(
-      "INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)",
+      "INSERT INTO contact (name, email, message) VALUES (?, ?, ?)",
       [name, email, message]
     );
     res.json({ success: true });
+
   } catch (err) {
     console.error("DB error:", err);
     return res.status(500).json({ error: "Database error" });
