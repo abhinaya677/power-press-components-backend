@@ -1,19 +1,19 @@
+require("dotenv").config(); // must be first line
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
-require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- MySQL connection ---
+// MySQL connection
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host: process.env.DB_HOST,    // yamabiko.proxy.rlwy.net
+  user: process.env.DB_USER,    // root
+  password: process.env.DB_PASS,// your password
+  database: process.env.DB_NAME,// railway
+  port: process.env.DB_PORT     // 14202
 });
 
 db.connect(err => {
@@ -27,7 +27,6 @@ db.connect(err => {
 // --- LOGIN endpoint ---
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
-
   if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
   db.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
@@ -35,17 +34,14 @@ app.post("/api/login", (req, res) => {
     if (results.length === 0) return res.status(401).json({ error: "User not found" });
 
     if (results[0].password === password) return res.json({ success: true });
-
     return res.status(401).json({ error: "Wrong password" });
   });
 });
 
-// --- CONTACT FORM endpoint ---
+// --- CONTACT endpoint ---
 app.post("/api/contact", (req, res) => {
   const { name, email, message } = req.body;
-
-  if (!name || !email || !message)
-    return res.status(400).json({ error: "All fields are required" });
+  if (!name || !email || !message) return res.status(400).json({ error: "All fields are required" });
 
   db.query(
     "INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)",
@@ -57,5 +53,5 @@ app.post("/api/contact", (req, res) => {
   );
 });
 
-// --- Start server ---
+// Start server
 app.listen(process.env.PORT || 3000, () => console.log("Server running"));
