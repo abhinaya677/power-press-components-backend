@@ -1,10 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const db = require("./db"); // use pool from db.js
+const db = require("./db");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*" // allow all origins; replace "*" with your frontend URL for production
+}));
 app.use(express.json());
 
 // --- LOGIN endpoint ---
@@ -27,7 +29,7 @@ app.post("/api/login", async (req, res) => {
 // --- CONTACT endpoint ---
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
-  if (!name || !email || !message) return res.status(400).json({ error: "All fields are required" });
+  if (!name || !email || !message) return res.status(400).json({ error: "All fields required" });
 
   try {
     await db.query(
