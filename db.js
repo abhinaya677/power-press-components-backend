@@ -1,22 +1,13 @@
-require('dotenv').config();  // load .env
-const mysql = require("mysql2");
+// db.js
+const mysql = require('mysql2');
+require('dotenv').config();
 
+// Use your Railway connection string
+const DB_URL = process.env.DATABASE_URL || 
+    'mysql://root:tOPHAsWnsVnfNzUIyHAjChYxhFHTPEfz@yamabiko.proxy.rlwy.net:14202/railway';
 
-// create a connection pool
-const db = mysql.createPool(process.env.MYSQL_URL);
+// Create a pool
+const pool = mysql.createPool(DB_URL);
 
-// test connection
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-    return;
-  }
-  console.log("✅ Connected to MySQL!");
-  connection.release();
-});
-
-module.exports = db;  // export for use in other files
-
-
-
-
+// Export promise-based pool for async/await
+module.exports = pool.promise();
