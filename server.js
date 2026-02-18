@@ -48,17 +48,15 @@ app.post("/api/contact", async (req, res) => {
   // --- REGISTER endpoint ---
 // --- REGISTER endpoint ---
 app.post("/api/register", async (req, res) => {
-  const { username, password } = req.body; // frontend now sends these fields
+  const { username, password } = req.body;
   if (!username || !password)
     return res.status(400).json({ error: "Missing fields" });
 
   try {
-    // Check if username already exists
     const [results] = await db.query("SELECT * FROM login WHERE username = ?", [username]);
     if (results.length > 0)
       return res.status(409).json({ error: "Username already registered" });
 
-    // Insert into login table
     await db.query("INSERT INTO login (username, password) VALUES (?, ?)", [username, password]);
 
     res.json({ success: true });
@@ -66,40 +64,34 @@ app.post("/api/register", async (req, res) => {
     console.error("DB error:", err);
     return res.status(500).json({ error: "Database error" });
   }
-  // --- LOGIN endpoint ---
+});
+
+// --- LOGIN endpoint ---
 app.post("/api/login", async (req, res) => {
-  const { username, password } = req.body; // frontend should send these
-  if (!username || !password) {
+  const { username, password } = req.body;
+  if (!username || !password)
     return res.status(400).json({ error: "Missing fields" });
-  }
 
   try {
-    // Check if user exists
     const [results] = await db.query("SELECT * FROM login WHERE username = ?", [username]);
-    if (results.length === 0) {
+    if (results.length === 0)
       return res.status(401).json({ error: "Invalid username or password" });
-    }
 
-    // Compare passwords (plain text for now, hashing later)
-    const user = results[0];
-    if (user.password !== password) {
+    if (results[0].password !== password)
       return res.status(401).json({ error: "Invalid username or password" });
-    }
 
-    // Login successful
-    res.json({ success: true, username: user.username });
+    res.json({ success: true, username: results[0].username });
   } catch (err) {
     console.error("DB error:", err);
     return res.status(500).json({ error: "Database error" });
   }
 });
 
-});
-
 
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
