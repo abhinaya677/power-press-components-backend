@@ -46,19 +46,20 @@ app.post("/api/contact", async (req, res) => {
     return res.status(500).json({ error: "Database error" });
   }
   // --- REGISTER endpoint ---
+// --- REGISTER endpoint ---
 app.post("/api/register", async (req, res) => {
-  const { name, email, password } = req.body; // frontend sends these fields
-  if (!name || !email || !password)
+  const { username, password } = req.body; // frontend now sends these fields
+  if (!username || !password)
     return res.status(400).json({ error: "Missing fields" });
 
   try {
-    // Use email as the username in login table
-    const [results] = await db.query("SELECT * FROM login WHERE username = ?", [email]);
+    // Check if username already exists
+    const [results] = await db.query("SELECT * FROM login WHERE username = ?", [username]);
     if (results.length > 0)
-      return res.status(409).json({ error: "Email already registered" });
+      return res.status(409).json({ error: "Username already registered" });
 
     // Insert into login table
-    await db.query("INSERT INTO login (username, password) VALUES (?, ?)", [email, password]);
+    await db.query("INSERT INTO login (username, password) VALUES (?, ?)", [username, password]);
 
     res.json({ success: true });
   } catch (err) {
@@ -71,6 +72,7 @@ app.post("/api/register", async (req, res) => {
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
